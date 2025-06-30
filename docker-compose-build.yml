@@ -1,0 +1,21 @@
+services:
+  api:
+    build:
+      context: ./f2-container
+    container_name: f2-api
+    volumes:
+      - ./f2-container/app.yaml:/app/app.yaml
+      - ./f2-container/Download:/app/Download
+    ports:
+      - "8000:8000"
+    restart: always
+
+  web:
+    build:
+      context: ./anydownload
+    container_name: anydownload-web
+    ports:
+      - "80:80"
+    depends_on:
+      - api
+    restart: always 

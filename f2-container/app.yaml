@@ -1,0 +1,8 @@
+douyin:
+  cookie: 
+  max_connections: 5
+  max_counts: 0
+  max_tasks: 10
+  page_counts: 20
+  path: Download
+  timeout: 10

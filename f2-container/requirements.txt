@@ -1,0 +1,8 @@
+f2
+fastapi
+uvicorn
+PyYAML
+httpx
+python-multipart
+pydantic
+typing-extensions 

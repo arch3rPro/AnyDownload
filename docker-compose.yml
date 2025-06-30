@@ -1,0 +1,19 @@
+services:
+  api:
+    image: vuldocker/anydownload-api
+    container_name: f2-api
+    volumes:
+      - ./f2-container/app.yaml:/app/app.yaml
+      - ./f2-container/Download:/app/Download
+    ports:
+      - "8000:8000"
+    restart: always
+
+  web:
+    image: vuldocker/anydownload-web
+    container_name: anydownload-web
+    ports:
+      - "80:80"
+    depends_on:
+      - api
+    restart: always 
