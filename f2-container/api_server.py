@@ -10,11 +10,6 @@ from f2.apps.douyin.handler import DouyinHandler
 from f2.apps.douyin.utils import SecUserIdFetcher, AwemeIdFetcher
 from urllib.parse import unquote, urlparse, quote
 
-# 读取嵌套的 douyin 配置
-with open("/app/app.yaml", "r", encoding="utf-8") as f:
-    config_all = yaml.safe_load(f)
-config = config_all.get("douyin", {})
-
 app = FastAPI()
 
 # 添加CORS中间件，允许所有来源
@@ -29,6 +24,11 @@ app.add_middleware(
 # 新增：主页链接校验函数
 def is_valid_douyin_user_url(url: str) -> bool:
     return url.startswith("https://www.douyin.com/user/") or url.startswith("https://v.douyin.com/")
+
+def get_latest_config():
+    with open("/app/app.yaml", "r", encoding="utf-8") as f:
+        config_all = yaml.safe_load(f)
+    return config_all.get("douyin", {})
 
 @app.get("/douyin/user_post")
 async def download_user_post(
@@ -47,10 +47,10 @@ async def download_user_post(
         def err_stream():
             yield "解析失败: 输入的URL不合法。类名：SecUserIdFetcher\n"
         return StreamingResponse(err_stream(), media_type="text/plain")
-    kwargs = config.copy()
+    kwargs = get_latest_config().copy()
     kwargs.update({
         "mode": mode,
-        "path": config.get("path", "Download"),
+        "path": kwargs.get("path", "Download"),
         "url": url,
     })
     if page_counts:
@@ -97,7 +97,7 @@ async def download_user_post(
 
         # 监控Download目录下文件数量变化
         download_dir = os.path.join(
-            config.get("path", "Download"),
+            kwargs.get("path", "Download"),
             "douyin",
             "post"
         )
@@ -138,10 +138,10 @@ async def download_one_video(
     """
     下载单个抖音作品，支持实时回显下载进度
     """
-    kwargs = config.copy()
+    kwargs = get_latest_config().copy()
     kwargs.update({
         "mode": "one",
-        "path": config.get("path", "Download"),
+        "path": kwargs.get("path", "Download"),
     })
     if "headers" not in kwargs or not isinstance(kwargs["headers"], dict):
         kwargs["headers"] = {
@@ -181,7 +181,7 @@ async def parse_video(url: str = Query(..., description="抖音作品链接")):
     """
     解析抖音视频真实直链，不下载，直接返回mp4地址
     """
-    kwargs = config.copy()
+    kwargs = get_latest_config().copy()
     kwargs.update({
         "mode": "one",
         "url": url,
@@ -278,10 +278,10 @@ async def parse_user_posts(
     if not is_valid_douyin_user_url(url):
         return JSONResponse(content={"code": 1, "msg": "请输入有效的抖音主页链接！"})
 
-    kwargs = config.copy()
+    kwargs = get_latest_config().copy()
     kwargs.update({
         "mode": "post",
-        "path": config.get("path", "Download"),
+        "path": kwargs.get("path", "Download"),
         "url": url,
     })
     if page_counts:
